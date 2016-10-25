@@ -29,7 +29,6 @@ class Graph:
                                      for k in self.forward_citation_graph.keys()}
         print("forward citation graph size is {:.2f} MB".format(sys.getsizeof(self.forward_citation_graph)/1000000))
         print("backward citation graph size is {:.2f} MB".format(sys.getsizeof(self.backward_citation_graph)/1000000))
-        self.analytics()
         #sanity check to see the citation graph for the highest ranked paper.
         # print(self.backward_citation_graph[232309])
 
@@ -52,7 +51,7 @@ class Graph:
                 # except:
                 #     self.backward_citation_graph[value] = [k]
 
-    def analytics(self):
+    def papers_binned_by_citation_count(self):
         citation_counts = {}
         for paper in self.forward_citation_graph.keys():
             num_citations = len(self.forward_citation_graph[paper])
@@ -102,9 +101,17 @@ class Graph:
 if __name__ == "__main__":
     # dataset = "/Users/iain/development/datasets/pagerank/outputacm_medium.txt"
     dataset = "/Users/iain/development/datasets/pagerank/outputacm.txt"
-    dataset_length = 629813
+    dataset_length = 629812
+    alpha = 0.85
+    tolerance = 0.01
+    top_p_papers = 20
+
     g = Graph(dataset, dataset_length)
-    p = PageRank(g)
-    print(p.ranked_list_papers)[:10]
-    for paper in p.ranked_list_papers[:10]:
-        print("{} is cited by {}".format(paper, g.backward_citation_graph[paper]))
+    # g.papers_binned_by_citation_count()
+    log = Logging()
+
+    p = PageRank(g, alpha, tolerance, top_p_papers, log)
+    print(p.indices_of_top_ranked_papers)[:top_p_papers]
+    for paper in p.indices_of_top_ranked_papers[:top_p_papers]:
+        # print("paper {} has score {} and is cited by {}".format(paper, p.paper_score[paper], g.backward_citation_graph[paper]))
+        print("paper {} has score {}".format(paper, p.paper_score[paper]))
