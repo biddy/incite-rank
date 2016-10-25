@@ -1,11 +1,10 @@
 from __future__ import division
 import sys
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 from pagerank import PageRank
+from logging import Logging
 
 class Graph:
     """
@@ -101,17 +100,19 @@ class Graph:
 if __name__ == "__main__":
     # dataset = "/Users/iain/development/datasets/pagerank/outputacm_medium.txt"
     dataset = "/Users/iain/development/datasets/pagerank/outputacm.txt"
-    dataset_length = 629812
+    dataset_length = 629813
     alpha = 0.85
-    tolerance = 0.01
-    top_p_papers = 20
+    tolerance = 0.001
+    top_p_papers = 50
 
     g = Graph(dataset, dataset_length)
     # g.papers_binned_by_citation_count()
     log = Logging()
 
     p = PageRank(g, alpha, tolerance, top_p_papers, log)
-    print(p.indices_of_top_ranked_papers)[:top_p_papers]
-    for paper in p.indices_of_top_ranked_papers[:top_p_papers]:
-        # print("paper {} has score {} and is cited by {}".format(paper, p.paper_score[paper], g.backward_citation_graph[paper]))
-        print("paper {} has score {}".format(paper, p.paper_score[paper]))
+    log.print_log()
+    log.proportions_of_final_rank_per_iteration()
+    # print(p.indices_of_top_ranked_papers)[:top_p_papers]
+    # for paper in p.indices_of_top_ranked_papers[:top_p_papers]:
+    #     # print("paper {} has score {} and is cited by {}".format(paper, p.paper_score[paper], g.backward_citation_graph[paper]))
+    #     print("paper {} has score {}".format(paper, p.paper_score[paper]))
