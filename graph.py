@@ -1,11 +1,10 @@
 from __future__ import division
 import sys
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 from pagerank import PageRank
+from logging import Logging
 
 class Graph:
     """
@@ -29,7 +28,6 @@ class Graph:
                                      for k in self.forward_citation_graph.keys()}
         print("forward citation graph size is {:.2f} MB".format(sys.getsizeof(self.forward_citation_graph)/1000000))
         print("backward citation graph size is {:.2f} MB".format(sys.getsizeof(self.backward_citation_graph)/1000000))
-        self.analytics()
         #sanity check to see the citation graph for the highest ranked paper.
         # print(self.backward_citation_graph[232309])
 
@@ -52,24 +50,17 @@ class Graph:
                 # except:
                 #     self.backward_citation_graph[value] = [k]
 
-    def analytics(self):
+    def papers_binned_by_citation_count(self):
         citation_counts = {}
         for paper in self.forward_citation_graph.keys():
             num_citations = len(self.forward_citation_graph[paper])
             self.increment_dict(citation_counts,num_citations)
-            # citation_counts[num_citations] += 1
-        # for key in citation_counts.keys():
-            # print("{} : {}".format(key, citation_counts[key]))
         cited_by_counts = {}
         for paper in self.backward_citation_graph.keys():
             num_c = len(self.backward_citation_graph[paper])
-        #     print(num_c)
             self.increment_dict(cited_by_counts, num_c)
         for key in cited_by_counts.keys():
             print("{} : {}".format(key, cited_by_counts[key]))
-        #     cited_by_counts[num_c] += 1
-        # for i in range(len(cited_by_counts)):
-        #     print("{} : {}".format(i, cited_by_counts[i]))
 
     def increment_dict(self, dict, key):
         try:
@@ -103,8 +94,18 @@ if __name__ == "__main__":
     # dataset = "/Users/iain/development/datasets/pagerank/outputacm_medium.txt"
     dataset = "/Users/iain/development/datasets/pagerank/outputacm.txt"
     dataset_length = 629813
+    alpha = 0.85
+    tolerance = 0.0001
+    top_p_papers = 50
+
     g = Graph(dataset, dataset_length)
-    p = PageRank(g)
-    print(p.ranked_list_papers)[:10]
-    for paper in p.ranked_list_papers[:10]:
-        print("{} is cited by {}".format(paper, g.backward_citation_graph[paper]))
+    g.papers_binned_by_citation_count()
+    log = Logging()
+
+    p = PageRank(g, alpha, tolerance, top_p_papers, log)
+    log.print_log()
+    log.proportions_of_final_rank_per_iteration()
+    # print(p.indices_of_top_ranked_papers)[:top_p_papers]
+    # for paper in p.indices_of_top_ranked_papers[:top_p_papers]:
+    #     # print("paper {} has score {} and is cited by {}".format(paper, p.paper_score[paper], g.backward_citation_graph[paper]))
+    #     print("paper {} has score {}".format(paper, p.paper_score[paper]))
