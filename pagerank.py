@@ -44,7 +44,7 @@ class PageRank:
         difference = self.tolerance*10
         while difference > self.tolerance:
             P_score_updated = self.step(g, P_score)
-            difference = np.sum(np.abs(P_score - P_score_updated))
+            difference = np.sum(np.abs(P_score - P_score_updated)) #TODO: experiment: difference measured over top-ranked papers
             print("change in iteration {} is {}".format(iteration, difference))
             P_score = P_score_updated
             self.rank_papers(P_score,iteration)
@@ -52,17 +52,22 @@ class PageRank:
         print(P_score)
         return P_score
 
-    def step(self, g, P):
+    def step(self, g, P_score):
         V = np.zeros((self.M, 1))
-        dangling_paper_contribution = self.alpha * sum([P[i] for i in g.dangling_papers])/self.M
+        dangling_paper_contribution = self.alpha * sum([P_score[i] for i in g.dangling_papers])/self.M
         teleportation_contribution = (1-self.alpha)/self.M
         for i in xrange(self.M):
-            citation_contribution = self.alpha * sum([P[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
-            # paper_importance = sum([P[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
-            # V[i] = self.alpha * paper_importance + self.alpha * dangling_paper_contribution \
-            #        + (1-self.alpha)/self.n
+            citation_contribution = self.alpha * sum([P_score[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
             V[i] = citation_contribution + dangling_paper_contribution + teleportation_contribution
-        return V/np.sum(V)
+        return V
+        # np.sum(V)
+        # return V/np.sum(V)
+
+    # def apply_weights(self, P_score):
+    #     beta = 2
+    #     collaboration = self.graph.number_citations
+    #     citation_contribution = self.alpha * sum([P_score[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
+
 
     def rank_papers(self, paper_score, iteration):
         """
