@@ -55,19 +55,12 @@ class Graph:
         for paper in self.forward_citation_graph.keys():
             num_citations = len(self.forward_citation_graph[paper])
             self.increment_dict(citation_counts,num_citations)
-            # citation_counts[num_citations] += 1
-        # for key in citation_counts.keys():
-            # print("{} : {}".format(key, citation_counts[key]))
         cited_by_counts = {}
         for paper in self.backward_citation_graph.keys():
             num_c = len(self.backward_citation_graph[paper])
-        #     print(num_c)
             self.increment_dict(cited_by_counts, num_c)
         for key in cited_by_counts.keys():
             print("{} : {}".format(key, cited_by_counts[key]))
-        #     cited_by_counts[num_c] += 1
-        # for i in range(len(cited_by_counts)):
-        #     print("{} : {}".format(i, cited_by_counts[i]))
 
     def increment_dict(self, dict, key):
         try:
@@ -102,11 +95,11 @@ if __name__ == "__main__":
     dataset = "/Users/iain/development/datasets/pagerank/outputacm.txt"
     dataset_length = 629813
     alpha = 0.85
-    tolerance = 0.001
+    tolerance = 0.0001
     top_p_papers = 50
 
     g = Graph(dataset, dataset_length)
-    # g.papers_binned_by_citation_count()
+    g.papers_binned_by_citation_count()
     log = Logging()
 
     p = PageRank(g, alpha, tolerance, top_p_papers, log)

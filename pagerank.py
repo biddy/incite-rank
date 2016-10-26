@@ -24,7 +24,7 @@ class PageRank:
         self.alpha = alpha
         self.tolerance = tolerance
         self.top_p_papers = top_p_papers
-        self.n = graph.size
+        self.M = graph.size
         self.graph = graph
         self.paper_rank = self.pagerank(self.graph)
         # self.rank_papers(self.paper_rank, "finished")
@@ -39,26 +39,29 @@ class PageRank:
         :param tolerance:
         :return:
         """
-        P = np.ones((self.n, 1)) / self.n
+        P_score = np.ones((self.M, 1)) / self.M #paper scores initialised to 1 vector
         iteration = 1
-        difference = 2
+        difference = self.tolerance*10
         while difference > self.tolerance:
-            P_updated = self.step(g, P)
-            difference = np.sum(np.abs(P - P_updated))
-            print("change for L1 norm in iteration {} is {}".format(iteration, difference))
-            P = P_updated
-            self.rank_papers(P,iteration)
+            P_score_updated = self.step(g, P_score)
+            difference = np.sum(np.abs(P_score - P_score_updated))
+            print("change in iteration {} is {}".format(iteration, difference))
+            P_score = P_score_updated
+            self.rank_papers(P_score,iteration)
             iteration += 1
-        print(P)
-        return P
+        print(P_score)
+        return P_score
 
     def step(self, g, P):
-        V = np.zeros((self.n, 1))
-        dangling_vector = sum([P[i] for i in g.dangling_papers])
-        for i in xrange(self.n):
-            paper_importance = sum([P[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
-            V[i] = self.alpha * paper_importance + self.alpha * (dangling_vector/self.n) \
-                   + (1-self.alpha)/self.n
+        V = np.zeros((self.M, 1))
+        dangling_paper_contribution = self.alpha * sum([P[i] for i in g.dangling_papers])/self.M
+        teleportation_contribution = (1-self.alpha)/self.M
+        for i in xrange(self.M):
+            citation_contribution = self.alpha * sum([P[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
+            # paper_importance = sum([P[k] / g.number_citations[k] for k in g.backward_citation_graph[i]])
+            # V[i] = self.alpha * paper_importance + self.alpha * dangling_paper_contribution \
+            #        + (1-self.alpha)/self.n
+            V[i] = citation_contribution + dangling_paper_contribution + teleportation_contribution
         return V/np.sum(V)
 
     def rank_papers(self, paper_score, iteration):
@@ -66,7 +69,7 @@ class PageRank:
         get intermediate pagerank and log the results
         """
         print("paper rank at iteration: {}".format(iteration))
-        unranked_list_papers = paper_score.reshape(1,self.n)[0]
+        unranked_list_papers = paper_score.reshape(1,self.M)[0]
         indices_of_top_ranked_papers = heapq.nlargest(self.top_p_papers,
                                                            xrange(len(unranked_list_papers)),
                                                            unranked_list_papers.__getitem__)
