@@ -78,7 +78,53 @@ class Logging:
         plt.legend(loc=4)
         plt.show()
 
-    # def chart_proportions(self, results_and_labels, alpha, tolerance, top_p_rank, beta=None):
+    def temporal_statistics(self, experiment_name):
+        #generate dummy data as a standin
+        np.random.seed(0)
+        mean_year = np.random.randint(100, size=(1,640000))[0] + 1900
+        np.random.seed(0)
+        pub_subtraction = np.random.randint(30, size=(1,640000))[0]
+        pub_year = mean_year - pub_subtraction
+        np.random.seed(0)
+        num_cit = np.random.randint(100, size=(1,640000))[0]+ 1900
+        z = zip(mean_year,pub_year,num_cit)
+        dummy_dict = {i: {"my":z[i][0],"py":z[i][1],"nc":z[i][2]} for i in range(640000)}
+        #create arrays to hold these statistics for each node in the top_p_rank
+        mean_year_citation = []
+        pub_year = []
+        num_in_citation = []
+        last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
+        for node in self.experiment_results[experiment_name][last_iteration][0]:
+            #These will be passed in as a dict where the node is the key
+            mean_year_citation.append(dummy_dict[node]["my"])
+            pub_year.append(dummy_dict[node]["py"])
+            num_in_citation.append(dummy_dict[node]["nc"])
+        avg_my = sum(mean_year)/len(mean_year)
+        avg_py = sum(pub_year)/len(pub_year)
+        avg_nc = sum(num_cit)/len(num_cit)
+        return avg_my, avg_py, avg_nc
+
+
+    def chart_temporal(self):
+        chart = {}
+        for experiment in self.experiment_results.keys():
+            avg_mean_year_cit, avg_pub_year, avg_num_in_citation = self.temporal_statistics(experiment)
+            beta = float(experiment.split("#")[0][4:])
+            chart[beta] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation]
+        for i in range(3):
+            data = {"x":[], "y":[], "label":[]}
+            for key, coord in chart.items():
+                data["x"].append(key)
+                data["y"].append(coord[i])
+            plt.plot(data["x"], data["y"])
+        plt.title("temporal")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.show()
+
+
+
+        # def chart_proportions(self, results_and_labels, alpha, tolerance, top_p_rank, beta=None):
     #     figure1 = plt.figure(1)
     #     handles = [] #tags for the chart legend
     #     for res_lab in results_and_labels:

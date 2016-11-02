@@ -60,7 +60,7 @@ top_p_rank = 50
 log = Logging(top_p_rank)
 
 for beta in betas:
-    experiment_tag = "beta:{}alpha:{}".format(beta,alpha)
+    experiment_tag = 'beta{}#alpha{}'.format(beta,alpha)
     cit_graph = add_datasets(citation_data, collaboration_data, beta=beta)
     normalize(cit_graph)
     print('calling pagerank')
@@ -69,6 +69,7 @@ for beta in betas:
 
 print(log.experiment_results)
 log.chart_proportions()
+log.chart_temporal()
 
 # log.show_all_charts()
 # log.print_log()
