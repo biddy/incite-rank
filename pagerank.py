@@ -60,7 +60,7 @@ def pagerank_common_factor(p, alpha):
     multiplier = (1-alpha)/len(p)
     return np.sum(p*multiplier)
 
-def pagerank_iteration(reverse_graph, dangling, p, alpha = 0.85, debug = False):
+def pagerank_iteration(reverse_graph, dangling, p, alpha, debug):
     nodes = len(p)
     general_p = 1/nodes
     factor = pagerank_common_factor(p, alpha)
@@ -79,7 +79,8 @@ def pagerank_iteration(reverse_graph, dangling, p, alpha = 0.85, debug = False):
         #     print('nodes completed: ' + str(column))
     return p_prime
 
-def find_pagerank(graph, dangling_nodes, nodes, log, alpha = 0.85, tolerance = 0.0001, debug = False):
+def find_pagerank(graph, dangling_nodes, nodes, log, experiment_tag, alpha, tolerance, debug):
+    if debug: print('executing pagerank using alpha: {} , tolerance: {}'.format(alpha, tolerance))
     # nodes = len(graph)
     m = 1/nodes
     if debug: print('building initial probability')
@@ -96,17 +97,16 @@ def find_pagerank(graph, dangling_nodes, nodes, log, alpha = 0.85, tolerance = 0
         p_new = pagerank_iteration(graph, dangling_nodes, p, alpha, debug)
         diff = np.sum(np.absolute(p - p_new))
         p = p_new
-        log.ranking(p, iterations, log)
+        log.ranking(p, iterations, experiment_tag)
         if debug: print('diff: ' + str(diff))
         iterations += 1
-    if debug: print("iterations required: " + str(iterations))
+    if debug: print("iterations required: " + str(iterations-1))
     return p
 
-def pagerank(forward_graph, log, alpha=0.85, tolerance=0.0001, debug=False):
+def pagerank(forward_graph, log, experiment_tag, alpha=0.85, tolerance=0.0001, debug=False):
     graph_size = len(forward_graph)
     if debug: print('building reverse graph')
     graph_backward, graph_dangling = create_backward_graph(forward_graph)
-    print(alpha, tolerance)
     if debug: print('initiating pagerank calculation... this may take a while!')
-    return find_pagerank(graph_backward, graph_dangling, graph_size, log, alpha, tolerance, debug)
+    return find_pagerank(graph_backward, graph_dangling, graph_size, log, experiment_tag, alpha, tolerance, debug)
 

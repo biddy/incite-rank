@@ -52,40 +52,33 @@ print('combining datasets to create a single graph')
 #logging
 # log = Logging(cit_graph, tolerance, alpha, top_p_rank)
 
-betas = [0.5,1]
-tolerance = 0.001
-alpha = 0.85
-results = [[] for i in range(len(betas))]
+betas = [0.1,1]
+tolerance = 0.05
+alpha = 0.6
 top_p_rank = 50
 
-citation_graph = add_datasets(citation_data, collaboration_data, beta=1)
-log = Logging(citation_graph, top_p_rank)
+log = Logging(top_p_rank)
 
-iteration = 1
 for beta in betas:
+    experiment_tag = "beta:{}alpha:{}".format(beta,alpha)
     cit_graph = add_datasets(citation_data, collaboration_data, beta=beta)
     normalize(cit_graph)
-    # tolerance = 0.001
-    # alpha = 0.85
-    #logging
-
     print('calling pagerank')
-    rank = pagerank(cit_graph, log, alpha=alpha, tolerance=tolerance, debug=True)
-    print('done!')
-    results[i] = log.proportions_of_final_rank_per_iteration()
-    # label = "alpha : {}".format(alphas[alpha])
-    label = "beta : {}".format(beta)
-    log.add_result_to_chart(results[i], label)
+    rank = pagerank(cit_graph, log, experiment_tag, alpha=alpha, tolerance=tolerance, debug=True)
+    print('done with experiment : {}'.format(experiment_tag))
 
-log.show_chart(alpha, tolerance, top_p_rank, beta)
+print(log.experiment_results)
+log.chart_proportions()
+
+# log.show_all_charts()
+# log.print_log()
+# log.proportions_of_final_rank_per_iteration()
 
 
-print('dataset size: ' + str(len(cit_graph)))
-print('normalizing graph')
-normalize(cit_graph)
-print('calling pagerank')
-rank = pagerank(cit_graph, log, alpha=0.85, tolerance=0.01, debug=True)
-print('done!')
+# print('dataset size: ' + str(len(cit_graph)))
+# print('normalizing graph')
+# normalize(cit_graph)
+# print('calling pagerank')
+# rank = pagerank(cit_graph, log, alpha=0.85, tolerance=0.01, debug=True)
+# print('done!')
 # print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
-log.print_log()
-log.proportions_of_final_rank_per_iteration()

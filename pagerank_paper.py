@@ -57,20 +57,20 @@ normalize(cit_graph)
 alphas = [0.75,0.80]
 results = [[] for i in range(len(alphas))]
 top_p_rank = 50
-log = Logging(cit_graph, top_p_rank)
+log = Logging(top_p_rank)
 
+iteration = 1
 for alpha in range(len(alphas)):
     tolerance = 0.001
-    # alpha = 0.85
-    #logging
-
     print('calling pagerank')
-    rank = pagerank(cit_graph, log, alpha=alphas[alpha], tolerance=tolerance, debug=True)
+    rank = pagerank(cit_graph, log, alpha=alpha, tolerance=tolerance, debug=True)
     print('done!')
     results[i] = log.proportions_of_final_rank_per_iteration()
-    label = "alpha : {}".format(alphas[alpha])
-    log.add_result_to_chart(results[i], label)
-log.show_chart(alphas[alpha], tolerance, top_p_rank)
+    label = "alpha : {}".format(alpha)
+    log.chart_proportions(results[i], label)
+    iteration += 1
+
+log.add_chart_information_proportions_chart(alpha, tolerance, top_p_rank)
 
 # print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
 # log.print_log()
