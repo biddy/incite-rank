@@ -41,7 +41,6 @@ class Logging:
         for paper in self.pagerank_log[final_key][0]:
             final_rank.add(paper)
         print(final_rank)
-        #add result to array to chart
         results = [0 for i in range(len(sorted_keys))]
         for key in sorted_keys[:-1]:
             count = 0
@@ -50,7 +49,6 @@ class Logging:
                     count += 1
             results[key] = count/len(final_rank)
             print("iteration {} had this proportion in final ranking: {}".format(key, count/len(final_rank)))
-        results.append(1)
         return results
 
     def add_result_to_chart(self, results, label):

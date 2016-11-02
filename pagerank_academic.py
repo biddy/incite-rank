@@ -52,7 +52,7 @@ print('combining datasets to create a single graph')
 #logging
 # log = Logging(cit_graph, tolerance, alpha, top_p_rank)
 
-betas = [0.5,1,2]
+betas = [0.5,1]
 tolerance = 0.001
 alpha = 0.85
 results = [[] for i in range(len(betas))]
