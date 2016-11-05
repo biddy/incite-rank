@@ -53,8 +53,8 @@ print('combining datasets to create a single graph')
 # log = Logging(cit_graph, tolerance, alpha, top_p_rank)
 
 betas = [0.1,1]
-tolerance = 0.05
-alpha = 0.6
+tolerance = 0.01
+alpha = 0.8
 top_p_rank = 50
 
 log = Logging(top_p_rank)
@@ -69,17 +69,4 @@ for beta in betas:
 
 print(log.experiment_results)
 log.chart_proportions()
-log.chart_temporal()
 
-# log.show_all_charts()
-# log.print_log()
-# log.proportions_of_final_rank_per_iteration()
-
-
-# print('dataset size: ' + str(len(cit_graph)))
-# print('normalizing graph')
-# normalize(cit_graph)
-# print('calling pagerank')
-# rank = pagerank(cit_graph, log, alpha=0.85, tolerance=0.01, debug=True)
-# print('done!')
-# print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))

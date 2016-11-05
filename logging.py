@@ -35,12 +35,6 @@ class Logging:
             dictionary[key1] = dict()
             dictionary[key1][key2] = value
 
-    # def save_ranking_for_experiment(self, experiment_name):
-    #     final_key = sorted(self.pagerank_log.keys())[-1]
-    #     print(final_key)
-    #     print(self.pagerank_log[final_key])
-    #     self.experiment_results[experiment_name] = self.pagerank_log[final_key]
-
     def print_log(self):
         for i in self.pagerank_log.keys():
             scores = zip(self.pagerank_log[i][0], self.pagerank_log[i][1])
@@ -104,13 +98,13 @@ class Logging:
         avg_nc = sum(num_cit)/len(num_cit)
         return avg_my, avg_py, avg_nc
 
-
     def chart_temporal(self):
         chart = {}
         for experiment in self.experiment_results.keys():
             avg_mean_year_cit, avg_pub_year, avg_num_in_citation = self.temporal_statistics(experiment)
-            beta = float(experiment.split("#")[0][4:])
-            chart[beta] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation]
+            gamma = float(experiment.split("#")[0].split(":")[1])
+            # beta = float(experiment.split("#")[0][4:])
+            chart[gamma] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation]
         for i in range(3):
             data = {"x":[], "y":[], "label":[]}
             for key, coord in chart.items():
@@ -122,7 +116,20 @@ class Logging:
         plt.ylabel("y")
         plt.show()
 
-
+    def ranking(self, p_score, iteration, experiment_tag):
+        """
+        get intermediate pagerank and log the results
+        """
+        print("paper rank at iteration: {}".format(iteration))
+        # unranked_list_papers = p_score.reshape(1,graph_size)[0]
+        unranked_list_papers = p_score.flatten()
+        indices_of_top_ranked_papers = heapq.nlargest(self.top_p_rank,
+                                                      xrange(len(unranked_list_papers)),
+                                                      unranked_list_papers.__getitem__)
+        #get the pagerank score for each of the papers in the specified indices
+        score_of_top_ranked_papers = np.take(unranked_list_papers, indices_of_top_ranked_papers)
+        print("score of top ranked papers: {}".format(score_of_top_ranked_papers))
+        self.save_intermediate_ranking(indices_of_top_ranked_papers, score_of_top_ranked_papers, iteration, experiment_tag)
 
         # def chart_proportions(self, results_and_labels, alpha, tolerance, top_p_rank, beta=None):
     #     figure1 = plt.figure(1)
@@ -155,19 +162,4 @@ class Logging:
     #
     # def show_all_charts(self):
     #     plt.show()
-
-    def ranking(self, p_score, iteration, experiment_tag):
-        """
-        get intermediate pagerank and log the results
-        """
-        print("paper rank at iteration: {}".format(iteration))
-        # unranked_list_papers = p_score.reshape(1,graph_size)[0]
-        unranked_list_papers = p_score.flatten()
-        indices_of_top_ranked_papers = heapq.nlargest(self.top_p_rank,
-                                                      xrange(len(unranked_list_papers)),
-                                                      unranked_list_papers.__getitem__)
-        #get the pagerank score for each of the papers in the specified indices
-        score_of_top_ranked_papers = np.take(unranked_list_papers, indices_of_top_ranked_papers)
-        print("score of top ranked papers: {}".format(score_of_top_ranked_papers))
-        self.save_intermediate_ranking(indices_of_top_ranked_papers, score_of_top_ranked_papers, iteration, experiment_tag)
 

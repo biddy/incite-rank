@@ -7,7 +7,6 @@ from pagerank import *
 from logging import Logging
 
 
-
 if len(sys.argv) != 2:
     print('need dataset')
     sys.exit(-1)
@@ -54,23 +53,19 @@ normalize(cit_graph)
 #
 # log.show_chart()
 
-alphas = [0.75,0.80]
-results = [[] for i in range(len(alphas))]
+alphas = [0.25, 0.5, 0.75, 0.85]
+tolerance = 0.001
 top_p_rank = 50
 log = Logging(top_p_rank)
 
-iteration = 1
-for alpha in range(len(alphas)):
-    tolerance = 0.001
+for alpha in alphas:
+    experiment_tag = 'alpha{}#tolerance{}'.format(alpha,tolerance)
     print('calling pagerank')
-    rank = pagerank(cit_graph, log, alpha=alpha, tolerance=tolerance, debug=True)
+    rank = pagerank(cit_graph, log, experiment_tag, alpha=alpha, tolerance=tolerance, debug=True)
     print('done!')
-    results[i] = log.proportions_of_final_rank_per_iteration()
-    label = "alpha : {}".format(alpha)
-    log.chart_proportions(results[i], label)
-    iteration += 1
 
-log.add_chart_information_proportions_chart(alpha, tolerance, top_p_rank)
+log.chart_proportions()
+# log.add_chart_information_proportions_chart(alpha, tolerance, top_p_rank)
 
 # print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
 # log.print_log()

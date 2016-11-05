@@ -2,11 +2,12 @@ from __future__ import division
 import sys
 import numpy as np
 import heapq
-from pagerank_iain import *
 
+from pagerank import *
+from logging import Logging
 
-def temporal_adjustment(graph, published, citation_years, gamma=0.5):
-    # finding the mean of list of years cited for each paper in "citation_years"
+def mean_citation_year(citation_years):
+# finding the mean of list of years cited for each paper in "citation_years"
     for paper in citation_years:
         year_list = citation_years[paper]
         if len(year_list) > 0:
@@ -14,14 +15,15 @@ def temporal_adjustment(graph, published, citation_years, gamma=0.5):
         else:
             citation_years[paper] = 0
 
-    for index in range(len(graph)):     # for each row of graph
-        citations_list = graph[index]        # .. grab the out-citation dictionary
+def temporal_adjustment(graph, published, citation_years, gamma=0.5):
+    temporal_cit_graph = graph
+    for index in range(len(temporal_cit_graph)):     # for each row of graph
+        citations_list = temporal_cit_graph[index]        # .. grab the out-citation dictionary
         for paper in citations_list:         # for each out cited paper for paper with given index
 # if that out-cited paper has a mean citation year
-            if paper in citation_years and citation_years[paper] != 0 
-                    and (citation_years[paper] - published[index]) != 0:
+            if paper in citation_years and citation_years[paper] != 0 and (citation_years[paper] - published[index]) != 0:
                 citations_list[paper] = (abs(citation_years[paper] - published[index])**gamma)*citations_list[paper]
-
+    return temporal_cit_graph
 
 if len(sys.argv) != 3:
     print('arguments needed: <paper citation dataset> <paper publication year dataset>')
@@ -73,19 +75,31 @@ with open(sys.argv[1]) as f:
         cit_graph.append(d)
 
 
-
 nodes = len(cit_graph)
 print('graph density: ' + str(count/(nodes*nodes)))
 
 print('dataset size: ' + str(len(cit_graph)))
 
-print('adding temporal weights')
-temporal_adjustment(cit_graph, pub_year, years_cited, gamma=0)
 
-print('normalizing graph')
-normalize(cit_graph)
+gammas = [0.5,1,2]
+tolerance = 0.01
+alpha = 0.8
+top_p_rank = 50
 
-print('calling pagerank')
-rank = pagerank(cit_graph, debug=True)
+log = Logging(top_p_rank)
+mean_citation_year(years_cited)
+
+for gamma in gammas:
+    experiment_tag = 'gamma:{}#alpha:{}'.format(gamma,alpha)
+    print('adding temporal weights')
+    temporal_cit_graph = temporal_adjustment(cit_graph, pub_year, years_cited, gamma=gamma)
+    print('normalizing graph')
+    normalize(temporal_cit_graph)
+
+    print('calling pagerank')
+    # rank = pagerank(cit_graph, debug=True)
+    rank = pagerank(temporal_cit_graph, log, experiment_tag, alpha=alpha, tolerance=tolerance, debug=True)
 print('done!')
-print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
+# print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
+log.chart_proportions()
+log.chart_temporal()
