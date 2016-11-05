@@ -7,15 +7,12 @@ import matplotlib.pyplot as plt
 
 class Logging:
 
-    def __init__(self, graph, top_p_rank):
-        # self.alpha = alpha
-        # self.tolerance = tolerance
+    def __init__(self, top_p_rank):
         self.top_p_rank = top_p_rank
-        self.graph = graph
-        self.handles = [] #labels for the chart legend
         self.pagerank_log = dict()
+        self.experiment_results = dict() #save the experiment results using the experiment name as the key
 
-    def save_intermediate_ranking(self, paper_index, paper_score, iteration):
+    def save_intermediate_ranking(self, k_top_paper_indices, k_top_paper_scores, iteration, experiment_tag):
         """
         intermediate results are saved in a dict where the key is the iteration number
         and the value is a tuple containing the indices and the associated pagerank scores
@@ -23,9 +20,20 @@ class Logging:
         index 1: paper_score
         """
         print("iteration {}".format(iteration))
-        print("scores {}".format(paper_score))
-        print("papers {}".format(paper_index))
-        self.pagerank_log[iteration] = (paper_index,paper_score)
+        print("scores {}".format(k_top_paper_scores))
+        print("papers {}".format(k_top_paper_indices))
+        values = (k_top_paper_indices, k_top_paper_scores)
+        self.create_key_or_add_to_dict(self.experiment_results, experiment_tag, iteration, values)
+        # self.experiment_results[experiment_tag][iteration] = (paper_index, paper_score)
+        # self.pagerank_log[iteration] = (paper_index,paper_score)
+
+    def create_key_or_add_to_dict(self, dictionary, key1, key2, value):
+        try:
+            dictionary[key1][key2] = value
+        except:
+            print('creating dict. key {}, key2 {}'.format(key1, key2))
+            dictionary[key1] = dict()
+            dictionary[key1][key2] = value
 
     def print_log(self):
         for i in self.pagerank_log.keys():
@@ -34,51 +42,124 @@ class Logging:
             for s in scores:
                 print("{}   :   {}".format(s[0],s[1]))
 
-    def proportions_of_final_rank_per_iteration(self):
+    def proportions_of_final_rank_per_iteration(self, experiment_name):
         final_rank = set()
-        sorted_keys = sorted(self.pagerank_log.keys())
-        final_key = sorted_keys[-1]
-        for paper in self.pagerank_log[final_key][0]:
+        # sorted_keys = sorted(self.pagerank_log.keys())
+        pagerank_iteration_keys = sorted(self.experiment_results[experiment_name].keys())
+        last_iteration = pagerank_iteration_keys[-1]
+        for paper in self.experiment_results[experiment_name][last_iteration][0]:
             final_rank.add(paper)
         print(final_rank)
-        #add result to array to chart
-        results = [0 for i in range(len(sorted_keys))]
-        for key in sorted_keys[:-1]:
+        results = [0 for i in range(len(pagerank_iteration_keys) + 1)]
+        for iteration in pagerank_iteration_keys:
             count = 0
-            for paper in self.pagerank_log[key][0]:
+            for paper in self.experiment_results[experiment_name][iteration][0]:
                 if paper in final_rank:
                     count += 1
-            results[key] = count/len(final_rank)
-            print("iteration {} had this proportion in final ranking: {}".format(key, count/len(final_rank)))
-        results.append(1)
+            results[iteration] = count/len(final_rank)
+            print("iteration {} had this proportion in final ranking: {}".format(iteration, count/len(final_rank)))
         return results
 
-    def add_result_to_chart(self, results, label):
-        plt.plot(results, label=label)
-        # self.handles.append(label)
-
-    def show_chart(self, alpha, tolerance, top_p_rank, beta=None):
-        if beta:
-            title_string = "beta : {}, alpha: {}, tolerance: {}, top_p_rank: {}".format(beta, alpha, tolerance, top_p_rank)
-        else:
-            title_string = "alpha: {}, tolerance: {}, top_p_rank: {}".format(alpha, tolerance, top_p_rank)
-        plt.title('proportion of final ranking present at each iteration. ' + title_string)
+    def chart_proportions(self):
+        handles = []
+        for experiment in self.experiment_results.keys():
+            result = self.proportions_of_final_rank_per_iteration(experiment)
+            plt.plot(result, label=experiment)
+            handles.append(experiment)
+        plt.title('proportion of final ranking present at each iteration')
         plt.xlabel('iteration #')
         plt.ylabel('proportion')
         plt.legend(loc=4)
         plt.show()
 
-    def ranking(self, p_score, iteration, log):
+    def temporal_statistics(self, experiment_name):
+        #generate dummy data as a standin
+        np.random.seed(0)
+        mean_year = np.random.randint(100, size=(1,640000))[0] + 1900
+        np.random.seed(0)
+        pub_subtraction = np.random.randint(30, size=(1,640000))[0]
+        pub_year = mean_year - pub_subtraction
+        np.random.seed(0)
+        num_cit = np.random.randint(100, size=(1,640000))[0]+ 1900
+        z = zip(mean_year,pub_year,num_cit)
+        dummy_dict = {i: {"my":z[i][0],"py":z[i][1],"nc":z[i][2]} for i in range(640000)}
+        #create arrays to hold these statistics for each node in the top_p_rank
+        mean_year_citation = []
+        pub_year = []
+        num_in_citation = []
+        last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
+        for node in self.experiment_results[experiment_name][last_iteration][0]:
+            #These will be passed in as a dict where the node is the key
+            mean_year_citation.append(dummy_dict[node]["my"])
+            pub_year.append(dummy_dict[node]["py"])
+            num_in_citation.append(dummy_dict[node]["nc"])
+        avg_my = sum(mean_year)/len(mean_year)
+        avg_py = sum(pub_year)/len(pub_year)
+        avg_nc = sum(num_cit)/len(num_cit)
+        return avg_my, avg_py, avg_nc
+
+    def chart_temporal(self):
+        chart = {}
+        for experiment in self.experiment_results.keys():
+            avg_mean_year_cit, avg_pub_year, avg_num_in_citation = self.temporal_statistics(experiment)
+            gamma = float(experiment.split("#")[0].split(":")[1])
+            # beta = float(experiment.split("#")[0][4:])
+            chart[gamma] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation]
+        for i in range(3):
+            data = {"x":[], "y":[], "label":[]}
+            for key, coord in chart.items():
+                data["x"].append(key)
+                data["y"].append(coord[i])
+            plt.plot(data["x"], data["y"])
+        plt.title("temporal")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.show()
+
+    def ranking(self, p_score, iteration, experiment_tag):
         """
         get intermediate pagerank and log the results
         """
         print("paper rank at iteration: {}".format(iteration))
-        unranked_list_papers = p_score.reshape(1,len(self.graph))[0]
+        # unranked_list_papers = p_score.reshape(1,graph_size)[0]
+        unranked_list_papers = p_score.flatten()
         indices_of_top_ranked_papers = heapq.nlargest(self.top_p_rank,
                                                       xrange(len(unranked_list_papers)),
                                                       unranked_list_papers.__getitem__)
         #get the pagerank score for each of the papers in the specified indices
         score_of_top_ranked_papers = np.take(unranked_list_papers, indices_of_top_ranked_papers)
         print("score of top ranked papers: {}".format(score_of_top_ranked_papers))
-        self.save_intermediate_ranking(indices_of_top_ranked_papers, score_of_top_ranked_papers, iteration)
+        self.save_intermediate_ranking(indices_of_top_ranked_papers, score_of_top_ranked_papers, iteration, experiment_tag)
+
+        # def chart_proportions(self, results_and_labels, alpha, tolerance, top_p_rank, beta=None):
+    #     figure1 = plt.figure(1)
+    #     handles = [] #tags for the chart legend
+    #     for res_lab in results_and_labels:
+    #         # print(res_lab)
+    #         # print(res_lab[0])
+    #         # print(res_lab[1])
+    #         plt.plot(res_lab[0], label=res_lab[1])
+    #         handles.append(res_lab[1])
+    #     if beta:
+    #         title_string = "beta : {}, alpha: {}, tolerance: {}, top_p_rank: {}".format(beta, alpha, tolerance, top_p_rank)
+    #     else:
+    #         title_string = "alpha: {}, tolerance: {}, top_p_rank: {}".format(alpha, tolerance, top_p_rank)
+    #     plt.title('proportion of final ranking present at each iteration. ' + title_string)
+    #     plt.xlabel('iteration #')
+    #     plt.ylabel('proportion')
+    #     plt.legend(loc=4)
+    #     plt.show()
+
+    # def add_chart_information_proportions_chart(self, alpha, tolerance, top_p_rank, beta=None):
+    #     if beta:
+    #         title_string = "beta : {}, alpha: {}, tolerance: {}, top_p_rank: {}".format(beta, alpha, tolerance, top_p_rank)
+    #     else:
+    #         title_string = "alpha: {}, tolerance: {}, top_p_rank: {}".format(alpha, tolerance, top_p_rank)
+    #     plt.title('proportion of final ranking present at each iteration. ' + title_string)
+    #     plt.xlabel('iteration #')
+    #     plt.ylabel('proportion')
+    #     plt.legend(loc=4)
+    #
+    # def show_all_charts(self):
+    #     plt.show()
 
