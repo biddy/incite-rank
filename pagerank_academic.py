@@ -52,15 +52,15 @@ print('combining datasets to create a single graph')
 #logging
 # log = Logging(cit_graph, tolerance, alpha, top_p_rank)
 
-betas = [0.1,1]
-tolerance = 0.01
-alpha = 0.8
+betas = [0.1,0.5]
+tolerance = 0.1
+alpha = 0.6
 top_p_rank = 50
 
 log = Logging(top_p_rank)
 
 for beta in betas:
-    experiment_tag = 'beta{}#alpha{}'.format(beta,alpha)
+    experiment_tag = 'beta:{}#alpha:{}'.format(beta,alpha)
     cit_graph = add_datasets(citation_data, collaboration_data, beta=beta)
     normalize(cit_graph)
     print('calling pagerank')
@@ -69,4 +69,6 @@ for beta in betas:
 
 print(log.experiment_results)
 log.chart_proportions()
+log.chart_academic()
+log.chart_temporal()
 
