@@ -25,6 +25,23 @@ def temporal_adjustment(graph, published, citation_years, gamma=0.5):
                 citations_list[paper] = (abs(citation_years[paper] - published[index])**gamma)*citations_list[paper]
     return temporal_cit_graph
 
+def data_dict(reverse_graph, published, mean_citation_years):
+    graph_size = len(published)
+    data = {}
+    for index in range(graph_size):
+        info = []
+        if index in mean_citation_years:
+            info.append(mean_citation_years[index])
+        else:
+            info.append(0)
+        info.append(published[index])
+        if index in reverse_graph:
+            info.append(len(reverse_graph[index]))
+        else:
+            info.append(0)
+        data[index] = info
+    return data
+
 if len(sys.argv) != 3:
     print('arguments needed: <paper citation dataset> <paper publication year dataset>')
     sys.exit(-1)
@@ -80,14 +97,18 @@ print('graph density: ' + str(count/(nodes*nodes)))
 
 print('dataset size: ' + str(len(cit_graph)))
 
+mean_citation_year(years_cited)
+graph_backward, graph_dangling = create_backward_graph(cit_graph)
+# dictionary required for logger in format {node_id: [mean_year, pub_year, #_in_citations]...}
+dataset_info_temporal = data_dict(graph_backward, pub_year, years_cited)
 
-gammas = [0.5,1,2]
+gammas = [0.1,0.5,1,2,10]
 tolerance = 0.01
-alpha = 0.8
-top_p_rank = 50
+alpha = 0.85
+top_p_rank = 100
+
 
 log = Logging(top_p_rank)
-mean_citation_year(years_cited)
 
 for gamma in gammas:
     experiment_tag = 'gamma:{}#alpha:{}'.format(gamma,alpha)
@@ -102,4 +123,4 @@ for gamma in gammas:
 print('done!')
 # print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
 log.chart_proportions()
-log.chart_temporal()
+log.chart_temporal(dataset_info_temporal)
