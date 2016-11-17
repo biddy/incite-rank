@@ -72,18 +72,27 @@ class Logging:
         plt.legend(loc=4)
         plt.show()
 
-    def temporal_statistics(self, experiment_name):
-        #generate dummy data as a standin
+    def academic_statistics(self, experiment_name):
         # np.random.seed(0)
-        # mean_year = np.random.randint(100, size=(1,640000))[0] + 1900
+        # num_in_citation = np.random.randint(100, size=(1,640000))[0]
         # np.random.seed(1)
-        # pub_subtraction = np.random.randint(30, size=(1,640000))[0]
-        # pub_year = mean_year - pub_subtraction
-        # np.random.seed(2)
-        # num_cit = np.random.randint(100, size=(1,640000))[0]+ 1900
-        # z = zip(mean_year,pub_year,num_cit)
-        # dummy_dict = {i: {"my":z[i][0],"py":z[i][1],"nc":z[i][2]} for i in range(640000)}
-        #create arrays to hold these statistics for each node in the top_p_rank
+        # num_in_collaboration = np.random.randint(100, size=(1,640000))[0]
+        # z = zip(num_in_citation,num_in_collaboration)
+        # dummy_dict = {i: {"ci":z[i][0],"co":z[i][1]} for i in range(640000)}
+        mean_citations = []
+        mean_collaborations = []
+        last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
+        for node in self.experiment_results[experiment_name][last_iteration][0]:
+            #These will be passed in as a dict where the node is the key
+            mean_citations.append(self.dataset_info_academic[node]["cit"])
+            mean_collaborations.append(self.dataset_info_academic[node]["col"])
+        avg_cit = sum(mean_citations)/len(mean_citations)
+        avg_col = sum(mean_collaborations) / len(mean_collaborations)
+        print("average citations, average collaborations for {}".format(experiment_name))
+        print(avg_cit,avg_col)
+        return avg_cit, avg_col
+
+    def temporal_statistics(self, experiment_name):
         mean_year_citation = []
         pub_year = []
         num_in_citation = []
@@ -99,28 +108,12 @@ class Logging:
         avg_my = sum(mean_year_citation)/len(mean_year_citation)
         avg_py = sum(pub_year)/len(pub_year)
         avg_nc = sum(num_in_citation)/len(num_in_citation)
-        print(avg_my, avg_py, avg_nc)
-        return avg_my, avg_py, avg_nc
+        diff_py_my = avg_my-avg_py
+        print(avg_my, avg_py, avg_nc, diff_py_my)
+        return avg_my, avg_py, avg_nc, diff_py_my
 
-    def academic_statistics(self, experiment_name):
-        np.random.seed(0)
-        num_in_citation = np.random.randint(100, size=(1,640000))[0]
-        np.random.seed(1)
-        num_in_collaboration = np.random.randint(100, size=(1,640000))[0]
-        z = zip(num_in_citation,num_in_collaboration)
-        dummy_dict = {i: {"ci":z[i][0],"co":z[i][1]} for i in range(640000)}
-        mean_citations = []
-        mean_collaborations = []
-        last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
-        for node in self.experiment_results[experiment_name][last_iteration][0]:
-            #These will be passed in as a dict where the node is the key
-            mean_citations.append(dummy_dict[node]["ci"])
-            mean_collaborations.append(dummy_dict[node]["co"])
-        avg_ci = sum(mean_citations)/len(mean_citations)
-        avg_co = sum(mean_collaborations)/len(mean_collaborations)
-        return avg_ci, avg_co
-
-    def chart_academic(self):
+    def chart_academic(self, dataset_info_academic):
+        self.dataset_info_academic = dataset_info_academic
         chart = {}
         handles = []
         names = ["number_in_citation", "number_in_collbaroation"]
@@ -128,30 +121,44 @@ class Logging:
             num_in_citation, num_in_collaboration = self.academic_statistics(experiment)
             beta = float(experiment.split("#")[0].split(":")[1]) #this is manually hacked in. Figure out a more
             # elegant method if we have time: experiment_name in the following form beta:foo_num#tolerance:bar_num
-            chart[beta] = [num_in_citation, num_in_citation]
-        for i in range(2):
-            data = {"x":[], "y":[], "label":[]}
-            for key, coord in chart.items():
-                data["x"].append(key)
-                data["y"].append(coord[i])
-            plt.plot(data["x"], data["y"], label=names[i])
-            handles.append(names[i])
+            chart[beta] = [num_in_citation, num_in_collaboration]
+            print(chart[beta])
+        data = {"x":[], "y":[], "label":[]}
+        plot_one = plt.figure(1)
+        for key in sorted(chart.keys()):
+            data["x"].append(key)
+            data["y"].append(chart[key][0])
+        plt.plot(data["x"], data["y"], label=names[0])
+        handles.append(names[0])
         plt.legend()
-        plt.title("academic")
-        plt.xlabel("x")
-        plt.ylabel("y")
+        plt.title("citations")
+        plt.xlabel("beta")
+        plt.ylabel("#")
+        plot_one.show()
+        plot_two = plt.figure(2)
+        data = {"x":[], "y":[], "label":[]}
+        for key in sorted(chart.keys()):
+            data["x"].append(key)
+            data["y"].append(chart[key][1])
+        plt.plot(data["x"], data["y"], label=names[1])
+        handles.append(names[1])
+        plt.legend()
+        plt.title("collaborations")
+        plt.xlabel("beta")
+        plt.ylabel("#")
+        plot_two.show()
         plt.show()
 
     def chart_temporal(self, dataset_info_temporal):
         self.dataset_info_temporal = dataset_info_temporal
         chart = {}
         handles = []
-        names = ["avg_year_cit", "avg_pub_year", "avg_num_in_citation"]
+        names = ["avg_year_cit", "avg_pub_year", "avg_num_in_citation", "diff_pub_cit"]
         for experiment in self.experiment_results.keys():
-            avg_mean_year_cit, avg_pub_year, avg_num_in_citation = self.temporal_statistics(experiment)
+            avg_mean_year_cit, avg_pub_year, avg_num_in_citation, diff_pubyear_cityear = self.temporal_statistics(
+                experiment)
             gamma = float(experiment.split("#")[0].split(":")[1])
-            chart[gamma] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation]
-            print(gamma, avg_mean_year_cit, avg_pub_year, avg_num_in_citation)
+            chart[gamma] = [avg_mean_year_cit, avg_pub_year, avg_num_in_citation, diff_pubyear_cityear]
         plot_one = plt.figure(1)
         for i in range(2):
             data = {"x":[], "y":[], "label":[]}
@@ -177,6 +184,18 @@ class Logging:
         plt.xlabel("x")
         plt.ylabel("y")
         plot_two.show()
+        plot_three = plt.figure(3)
+        data = {"x":[], "y":[], "label":[]}
+        for key in sorted(chart.keys()):
+            data["x"].append(key)
+            data["y"].append(chart[key][3])
+        plt.plot(data["x"], data["y"], label=names[3])
+        handles.append(names[3])
+        plt.title("difference between published year and mean citation year")
+        plt.legend()
+        plt.xlabel("gamma")
+        plt.ylabel("time in years")
+        plot_three.show()
         plt.show()
 
     def ranking(self, p_score, iteration, experiment_tag):

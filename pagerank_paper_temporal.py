@@ -4,7 +4,7 @@ import numpy as np
 import heapq
 
 from pagerank import *
-from logging import Logging
+from pagerank_logging import Logging
 
 def mean_citation_year(citation_years):
 # finding the mean of list of years cited for each paper in "citation_years"
@@ -91,7 +91,6 @@ with open(sys.argv[1]) as f:
         index += 1
         cit_graph.append(d)
 
-
 nodes = len(cit_graph)
 print('graph density: ' + str(count/(nodes*nodes)))
 
@@ -102,10 +101,10 @@ graph_backward, graph_dangling = create_backward_graph(cit_graph)
 # dictionary required for logger in format {node_id: [mean_year, pub_year, #_in_citations]...}
 dataset_info_temporal = data_dict(graph_backward, pub_year, years_cited)
 
-gammas = [0.1,0.5,1,2,10]
-tolerance = 0.01
+gammas = [0.01,0.5,1,1.5,2]
+tolerance = 0.001
 alpha = 0.85
-top_p_rank = 100
+top_p_rank = 50
 
 
 log = Logging(top_p_rank)
@@ -116,11 +115,11 @@ for gamma in gammas:
     temporal_cit_graph = temporal_adjustment(cit_graph, pub_year, years_cited, gamma=gamma)
     print('normalizing graph')
     normalize(temporal_cit_graph)
-
     print('calling pagerank')
     # rank = pagerank(cit_graph, debug=True)
     rank = pagerank(temporal_cit_graph, log, experiment_tag, alpha=alpha, tolerance=tolerance, debug=True)
 print('done!')
+
 # print(heapq.nlargest(50, range(len(rank)), key=rank.__getitem__))
 log.chart_proportions()
 log.chart_temporal(dataset_info_temporal)

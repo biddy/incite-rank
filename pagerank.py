@@ -20,22 +20,42 @@ def normalize(graph):
     for n in graph:
         dict_normalize(n)
 
-def add_datasets(d1, d2, beta = 1.0):
+def add_datasets(d1, d2, beta):
     if len(d1) != len(d2):
         return None
     print('combining datasets')
     dataset = []
     for dt in d1:
-        dataset.append(dt.copy())
+        d_temp = dt.copy()
+        for k in d_temp:
+            d_temp[k] = d_temp[k]*beta
+        dataset.append(d_temp)
     for i in range(len(d2)):
         dt1 = dataset[i]
         dt2 = d2[i]
         for k in dt2:
             if k in dt1:
-                dt1[k] = dt1[k] + (dt2[k]*beta)
+                dt1[k] = dt1[k] + (dt2[k]*(1-beta))
             else:
-                dt1[k] = dt2[k]*beta
+                dt1[k] = dt2[k]*(1-beta)
     return dataset
+
+# def add_datasets(d1, d2, beta = 1.0):
+#     if len(d1) != len(d2):
+#         return None
+#     print('combining datasets')
+#     dataset = []
+#     for dt in d1:
+#         dataset.append(dt.copy())
+#     for i in range(len(d2)):
+#         dt1 = dataset[i]
+#         dt2 = d2[i]
+#         for k in dt2:
+#             if k in dt1:
+#                 dt1[k] = dt1[k] + (dt2[k]*beta)
+#             else:
+#                 dt1[k] = dt2[k]*beta
+#     return dataset
 
 def create_backward_graph(forward_graph):
     nodes = len(forward_graph)

@@ -4,7 +4,7 @@ import numpy as np
 import heapq
 
 from pagerank import *
-from logging import Logging
+from pagerank_logging import Logging
 
 
 if len(sys.argv) != 2:
@@ -36,7 +36,7 @@ print('dataset size: ' + str(len(cit_graph)))
 print('normalizing graph')
 normalize(cit_graph)
 
-alphas = [0.25, 0.5, 0.75, 0.85]
+alphas = [0.25, 0.5, 0.75, 0.85, 0.95]
 tolerance = 0.001
 top_p_rank = 50
 log = Logging(top_p_rank)
