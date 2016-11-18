@@ -1,7 +1,5 @@
 from __future__ import division
-import sys
 import numpy as np
-import heapq
 
 def dict_sum(dt):
     total = 0.0
@@ -11,7 +9,6 @@ def dict_sum(dt):
 
 def dict_normalize(dt):
     row_sum = dict_sum(dt)
-    #print(row_sum)
     for k in dt:
         dt[k] = dt[k] / row_sum
 
@@ -20,21 +17,27 @@ def normalize(graph):
     for n in graph:
         dict_normalize(n)
 
-def add_datasets(d1, d2, beta = 1.0):
-    if len(d1) != len(d2):
+def add_datasets(citations, collaborations, beta = 1.0):
+    """
+    this combines the citations and collaborations into a single dataset using the specified beta parameter
+    """
+    if len(citations) != len(collaborations):
         return None
     print('combining datasets')
     dataset = []
-    for dt in d1:
-        dataset.append(dt.copy())
-    for i in range(len(d2)):
+    for dt in citations:
+        d_temp = dt.copy()
+        for k in d_temp:
+            d_temp[k] = d_temp[k]*beta
+        dataset.append(d_temp)
+    for i in range(len(collaborations)):
         dt1 = dataset[i]
-        dt2 = d2[i]
+        dt2 = collaborations[i]
         for k in dt2:
             if k in dt1:
-                dt1[k] = dt1[k] + (dt2[k]*beta)
+                dt1[k] = dt1[k] + (dt2[k]*(1-beta))
             else:
-                dt1[k] = dt2[k]*beta
+                dt1[k] = dt2[k]*(1-beta)
     return dataset
 
 def create_backward_graph(forward_graph):
@@ -75,23 +78,16 @@ def pagerank_iteration(reverse_graph, dangling, p, alpha, debug):
             for row in reverse_map:
                 p_temp += alpha*reverse_map[row]*p[row]
         p_prime[column] = p_temp
-        # if debug and column % 100000 == 0:
-        #     print('nodes completed: ' + str(column))
     return p_prime
 
 def find_pagerank(graph, dangling_nodes, nodes, log, experiment_tag, alpha, tolerance, debug):
-    if debug: print('executing pagerank using alpha: {} , tolerance: {}'.format(alpha, tolerance))
-    # nodes = len(graph)
     m = 1/nodes
-    if debug: print('building initial probability')
     p = np.full(nodes, m)
-    if debug: print('iteration: 1')
-    # p_new = pagerank_iteration(graph, dangling_nodes, p, alpha, debug)
-    # diff = np.sum(np.absolute(p - p_new))
-    # if debug: print('diff: ' + str(diff))
-    # p = p_new
     iterations = 1
     diff = 2
+    if debug: print('executing pagerank using alpha: {} , tolerance: {}'.format(alpha, tolerance))
+    if debug: print('building initial probability')
+    if debug: print('iteration: 1')
     while(diff > tolerance):
         if debug: print('iteration: ' + str(iterations))
         p_new = pagerank_iteration(graph, dangling_nodes, p, alpha, debug)
@@ -103,7 +99,7 @@ def find_pagerank(graph, dangling_nodes, nodes, log, experiment_tag, alpha, tole
     if debug: print("iterations required: " + str(iterations-1))
     return p
 
-def pagerank(forward_graph, log, experiment_tag, alpha=0.85, tolerance=0.0001, debug=False):
+def pagerank(forward_graph, log, experiment_tag, alpha=0.85, tolerance=0.01, debug=False):
     graph_size = len(forward_graph)
     if debug: print('building reverse graph')
     graph_backward, graph_dangling = create_backward_graph(forward_graph)

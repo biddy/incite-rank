@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pagerank_iain import PageRank
-from logging import Logging
+from pagerank_logging import Logging
 
 class Graph:
     """

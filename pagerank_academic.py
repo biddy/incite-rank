@@ -1,12 +1,7 @@
 from __future__ import division
-import sys
-import numpy as np
-import heapq
 
 from pagerank import *
-from logging import Logging
-
-
+from pagerank_logging import Logging
 
 if len(sys.argv) != 2:
     print('need dataset')
@@ -14,6 +9,8 @@ if len(sys.argv) != 2:
 
 collaboration_data = []
 citation_data = []
+
+logging_dataset = {}
 print('reading datasets')
 with open(sys.argv[1]) as f:
     for line in f:
@@ -30,6 +27,13 @@ with open(sys.argv[1]) as f:
                 co_d[c] = co_d[c] + 1
             else:
                 co_d[c] = 1
+            count_dict = None
+            if c in logging_dataset:
+                count_dict = logging_dataset[c]
+            else:
+                count_dict = {'col': 0, 'cit': 0}
+                logging_dataset[c] = count_dict
+            count_dict['col'] = count_dict['col'] + 1
 
         if len(ci) > 0:
             citation_list = [int(val) for val in ci.split(',')]
@@ -38,23 +42,22 @@ with open(sys.argv[1]) as f:
                 ci_d[c] = ci_d[c] + 1
             else:
                 ci_d[c] = 1
+            count_dict = None
+            if c in logging_dataset:
+                count_dict = logging_dataset[c]
+            else:
+                count_dict = {'col': 0, 'cit': 0}
+                logging_dataset[c] = count_dict
+            count_dict['cit'] = count_dict['cit'] + 1
+
         collaboration_data.append(co_d)
         citation_data.append(ci_d)
 
-#print(len(collaboration_data))
-#print(len(citation_data))
 print('combining datasets to create a single graph')
 
-# for i in len(experiment_size):
-
-#is experiments run on beta, make sure this is part oft he loop. Otherwise it can be separate
-
-#logging
-# log = Logging(cit_graph, tolerance, alpha, top_p_rank)
-
-betas = [0.1,0.5]
-tolerance = 0.1
-alpha = 0.6
+betas = [0.01,0.25,0.5,0.75,0.99]
+tolerance = 0.01
+alpha = 0.85
 top_p_rank = 50
 
 log = Logging(top_p_rank)
@@ -69,6 +72,5 @@ for beta in betas:
 
 print(log.experiment_results)
 log.chart_proportions()
-log.chart_academic()
-log.chart_temporal()
+log.chart_academic(logging_dataset)
 
