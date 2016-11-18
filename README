@@ -1,0 +1,34 @@
+Dependencies:
+python2.7
+matplotlib
+numpy
+
+The associated source files are:
+
+1) dataset_builder.py           code to build the datasets to be used for pagerank
+2) pagerank.py                  core pagerank scoring code
+3) pagerank_logging.py          code module required for logging
+4) pagerank_paper.py            driver code for the simple paper-paper citation ranking (path 1 analysis)
+5) pagerank_paper_temporal.py   driver code for temporal paper-paper citation (path 2 analysis)
+6) pagerank_academic.py         driver code for academic citation/collaboration scoring (path 3 analysis)
+
+Instructions:
+Download citation network from http://aminer.org/lab-datasets/citation/citation-network1.zip
+
+run dataset_builder.py once with the following parameters to process the dataset into the correct format:
+$dataset_builder.py <dataset path> <paper citation output> <paper name output> <author citation output> <author name output> <paper year output>
+
+The following scripts will automatically run the experiments for a set of specified parameters. Charts will
+automatically be produced.
+
+traditional paper->paper pagerank:
+$python pagerank_paper.py <paper citation output>
+
+temporal paper->paper pagerank:
+$python pagerank_paper_temporal.py <paper citation output> <paper year output>
+
+academic->academic pagerank:
+$python pagerank_paper_temporal.py <author citation output>
+
+
+

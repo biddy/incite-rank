@@ -47,10 +47,7 @@ if len(sys.argv) != 3:
 debug = True
 cit_graph = []
 pub_year = {}       # map from paper index to year of publication
-
-# map (initially) from paper index to list of years of papers that it has been cited by
-years_cited = {}
-
+years_cited = {} # map (initially) from paper index to list of years of papers that it has been cited by
 
 print('reading publication date dataset')
 index = 0
@@ -99,7 +96,7 @@ graph_backward, graph_dangling = create_backward_graph(cit_graph)
 # dictionary required for logger in format {node_id: [mean_year, pub_year, #_in_citations]...}
 dataset_info_temporal = data_dict(graph_backward, pub_year, years_cited)
 
-gammas = [-0.9, -0.3, 0.5, 1.5, 2]
+gammas = [-2,-1.01, -0.5, 0.5, 1.5, 2]
 tolerance = 0.01
 alpha = 0.85
 top_p_rank = 50

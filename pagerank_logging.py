@@ -42,7 +42,6 @@ class Logging:
 
     def proportions_of_final_rank_per_iteration(self, experiment_name):
         final_rank = set()
-        # sorted_keys = sorted(self.pagerank_log.keys())
         pagerank_iteration_keys = sorted(self.experiment_results[experiment_name].keys())
         last_iteration = pagerank_iteration_keys[-1]
         for paper in self.experiment_results[experiment_name][last_iteration][0]:

@@ -1,11 +1,7 @@
 from __future__ import division
-import sys
-import numpy as np
-import heapq
 
 from pagerank import *
 from pagerank_logging import Logging
-
 
 if len(sys.argv) != 2:
     print('need dataset')
