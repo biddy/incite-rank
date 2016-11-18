@@ -1,11 +1,7 @@
 from __future__ import division
-import sys
-import numpy as np
-import heapq
 
 from pagerank import *
 from pagerank_logging import Logging
-
 
 if len(sys.argv) != 2:
     print('need dataset')
@@ -59,9 +55,8 @@ with open(sys.argv[1]) as f:
 
 print('combining datasets to create a single graph')
 
-# for i in len(experiment_size):
-betas = [0.01,0.05,0.1,0.3,0.5,0.7,0.9]
-tolerance = 0.001
+betas = [0.01,0.25,0.5,0.75,0.99]
+tolerance = 0.01
 alpha = 0.85
 top_p_rank = 50
 

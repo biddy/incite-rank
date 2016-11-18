@@ -24,8 +24,6 @@ class Logging:
         print("papers {}".format(k_top_paper_indices))
         values = (k_top_paper_indices, k_top_paper_scores)
         self.create_key_or_add_to_dict(self.experiment_results, experiment_tag, iteration, values)
-        # self.experiment_results[experiment_tag][iteration] = (paper_index, paper_score)
-        # self.pagerank_log[iteration] = (paper_index,paper_score)
 
     def create_key_or_add_to_dict(self, dictionary, key1, key2, value):
         try:
@@ -66,19 +64,13 @@ class Logging:
             result = self.proportions_of_final_rank_per_iteration(experiment)
             plt.plot(result, label=experiment)
             handles.append(experiment)
-        plt.title('proportion of final ranking present at each iteration')
+        plt.title('Convergence: proportion of final ranking present at each iteration')
         plt.xlabel('iteration #')
         plt.ylabel('proportion')
         plt.legend(loc=4)
         plt.show()
 
     def academic_statistics(self, experiment_name):
-        # np.random.seed(0)
-        # num_in_citation = np.random.randint(100, size=(1,640000))[0]
-        # np.random.seed(1)
-        # num_in_collaboration = np.random.randint(100, size=(1,640000))[0]
-        # z = zip(num_in_citation,num_in_collaboration)
-        # dummy_dict = {i: {"ci":z[i][0],"co":z[i][1]} for i in range(640000)}
         mean_citations = []
         mean_collaborations = []
         last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
@@ -97,14 +89,13 @@ class Logging:
         pub_year = []
         num_in_citation = []
         last_iteration = sorted(self.experiment_results[experiment_name].keys())[-1]
+        print(experiment_name)
+        print(self.experiment_results[experiment_name][last_iteration])
         for node in self.experiment_results[experiment_name][last_iteration][0]:
             #These will be passed in as a dict where the node is the key
             mean_year_citation.append(self.dataset_info_temporal[node][0])
             pub_year.append(self.dataset_info_temporal[node][1])
             num_in_citation.append(self.dataset_info_temporal[node][2])
-            # mean_year_citation.append(dummy_dict[node]["my"])
-            # pub_year.append(dummy_dict[node]["py"])
-            # num_in_citation.append(dummy_dict[node]["nc"])
         avg_my = sum(mean_year_citation)/len(mean_year_citation)
         avg_py = sum(pub_year)/len(pub_year)
         avg_nc = sum(num_in_citation)/len(num_in_citation)
@@ -116,7 +107,7 @@ class Logging:
         self.dataset_info_academic = dataset_info_academic
         chart = {}
         handles = []
-        names = ["number_in_citation", "number_in_collbaroation"]
+        names = ["number_in_citation", "number_in_collaboration"]
         for experiment in self.experiment_results.keys():
             num_in_citation, num_in_collaboration = self.academic_statistics(experiment)
             beta = float(experiment.split("#")[0].split(":")[1]) #this is manually hacked in. Figure out a more
@@ -131,7 +122,7 @@ class Logging:
         plt.plot(data["x"], data["y"], label=names[0])
         handles.append(names[0])
         plt.legend()
-        plt.title("citations")
+        plt.title("average in-citations in top ranking")
         plt.xlabel("beta")
         plt.ylabel("#")
         plot_one.show()
@@ -143,7 +134,7 @@ class Logging:
         plt.plot(data["x"], data["y"], label=names[1])
         handles.append(names[1])
         plt.legend()
-        plt.title("collaborations")
+        plt.title("average in-collaborations in top ranking")
         plt.xlabel("beta")
         plt.ylabel("#")
         plot_two.show()
@@ -155,6 +146,7 @@ class Logging:
         handles = []
         names = ["avg_year_cit", "avg_pub_year", "avg_num_in_citation", "diff_pub_cit"]
         for experiment in self.experiment_results.keys():
+            print(experiment)
             avg_mean_year_cit, avg_pub_year, avg_num_in_citation, diff_pubyear_cityear = self.temporal_statistics(
                 experiment)
             gamma = float(experiment.split("#")[0].split(":")[1])
@@ -169,8 +161,8 @@ class Logging:
             handles.append(names[i])
         plt.title("average year of citations and average published year")
         plt.legend()
-        plt.xlabel("x")
-        plt.ylabel("y")
+        plt.xlabel("gamma")
+        plt.ylabel("year")
         plot_one.show()
         plot_two = plt.figure(2)
         data = {"x":[], "y":[], "label":[]}
@@ -179,10 +171,10 @@ class Logging:
             data["y"].append(chart[key][2])
         plt.plot(data["x"], data["y"], label=names[2])
         handles.append(names[2])
-        plt.title("average number in citation")
+        plt.title("average number in-citation")
         plt.legend()
-        plt.xlabel("x")
-        plt.ylabel("y")
+        plt.xlabel("# citation")
+        plt.ylabel("gamma")
         plot_two.show()
         plot_three = plt.figure(3)
         data = {"x":[], "y":[], "label":[]}
@@ -194,7 +186,7 @@ class Logging:
         plt.title("difference between published year and mean citation year")
         plt.legend()
         plt.xlabel("gamma")
-        plt.ylabel("time in years")
+        plt.ylabel("years")
         plot_three.show()
         plt.show()
 
